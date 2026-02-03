@@ -1,0 +1,105 @@
+<?php
+
+namespace App\Repositories;
+
+use App\Contracts\Repositories\EmployeeRepositoryInterface;
+use App\Models\Employees;
+use App\Models\Employees_positions;
+use Illuminate\Support\Facades\DB;
+
+class EmployeeRepository implements EmployeeRepositoryInterface
+{
+    public function create(array $data): array
+    {
+        $employee = Employees::create($data);
+
+        return [
+            'employees_id' => $employee->employees_id,
+            'mechanical_workshops_id' => $employee->mechanical_workshops_id,
+            'peoples_id' => $employee->peoples_id,
+        ];
+    }
+
+    public function update(int $id, array $data): array
+    {
+        $employee = Employees::findOrFail($id);
+        $employee->update($data);
+
+        return [
+            'employees_id' => $employee->employees_id,
+            'mechanical_workshops_id' => $employee->mechanical_workshops_id,
+            'peoples_id' => $employee->peoples_id,
+        ];
+    }
+
+    public function findById(int $employeeId, int $mechanical_id): ?array
+    {
+        $employee = Employees::with(['person', 'positions'])
+            ->where('employees_id', $employeeId)
+            ->where('mechanical_workshops_id', $mechanical_id)
+            ->first();
+
+        if (!$employee) {
+            return [];
+        }
+        return [
+            'employees_id' => $employee->employees_id,
+            'mechanical_workshops_id' => $employee->mechanical_workshops_id,
+            'peoples_id' => $employee->peoples_id,
+            'person' => $employee->person,
+            'positions' => $employee->positions
+        ];
+    }
+
+    public function delete(int $id): bool
+    {
+        $employee = Employees::findOrFail($id);
+        return $employee->delete();
+    }
+
+    public function getAllByWorkshop(int $workshopId): array
+    {
+        $employees =  Employees::with(['person', 'positions'])
+            ->where('mechanical_workshops_id', $workshopId)
+            ->get();
+
+        return $employees->map(function ($employee) {
+            return [
+                'employees_id' => $employee['employees_id'],
+                'fullName' => $employee['positions'][0]['name']. ' - ' . $employee['person']['name']. ' ' . $employee['person']['last_name'],
+                'mechanical_workshops_id' => $employee['mechanical_workshops_id'],
+                'peoples_id' => $employee['peoples_id'],
+                'person' => $employee['person'],
+                'positions' => $employee['positions']
+            ];
+        })->toArray();
+    }
+
+    public function attachPosition(int $employeeId, int $positionId): array
+    {
+        $data = [
+            'employees_id' => $employeeId,
+            'positions_id' => $positionId
+        ];
+
+        $employeePosition = Employees_positions::create($data);
+        return $employeePosition->toArray();
+    }
+
+    public function updatePosition(int $employeeId, int | null $oldPositionId, int $newPositionId): bool
+    {
+        if ($oldPositionId === null) {
+            $this->attachPosition($employeeId, $newPositionId);
+            return true;
+        }
+
+        $updated = DB::table('employes_positions')
+            ->where('employees_id', $employeeId)
+            ->where('positions_id', $oldPositionId)
+            ->update([
+                'positions_id' => $newPositionId,
+            ]);
+
+        return $updated > 0;
+    }
+}
