@@ -2,10 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Console\Commands\SendAppointmentReminders;
 use App\Contracts\Services\AppointmentServiceInterface;
+use App\Http\Requests\CancelAppointmentRequest;
+use App\Http\Requests\CompleteAppointmentRequest;
+use App\Http\Requests\ConfirmAppointmentRequest;
+use App\Http\Requests\GetAppointmentsByWorkshopRequest;
 use App\Http\Requests\StoreAppointmentRequest;
-use App\Http\Requests\UpdateAppointmentRequest;
 use App\Http\Responses\ApiResponse;
+use App\Services\AppointmentService;
 use Illuminate\Http\Request;
 
 class AppointmentController extends Controller
@@ -23,8 +28,7 @@ class AppointmentController extends Controller
     public function createRequest(StoreAppointmentRequest $request)
     {
         try {
-            $data = $request->validated();
-            $appointment = $this->appointmentService->createAppointmentRequest($data);
+            $appointment = $this->appointmentService->createAppointmentRequest($request->validated());
 
             return ApiResponse::created(
                 'Solicitud de cita creada exitosamente. Te notificaremos cuando sea confirmada.',
@@ -38,17 +42,10 @@ class AppointmentController extends Controller
     /**
      * Confirmar cita (desde el dashboard del taller)
      */
-    public function confirm(Request $request)
+    public function confirm(ConfirmAppointmentRequest $request)
     {
         try {
-            $data = $request->validate([
-                'appointment_id' => 'required|exists:appointments,appointment_id',
-                'confirmed_date' => 'required|date|after:now',
-                'confirmed_time' => 'required|date_format:H:i:s',
-                'notes' => 'sometimes|string|max:1000'
-            ]);
-
-            $appointment = $this->appointmentService->confirmAppointment($data);
+            $appointment = $this->appointmentService->confirmAppointment($request->validated());
 
             return ApiResponse::success('Cita confirmada exitosamente', $appointment);
         } catch (\Exception $e) {
@@ -59,10 +56,10 @@ class AppointmentController extends Controller
     /**
      * Obtener todas las citas de un taller específico
      */
-    public function getAllByWorkshop(Request $request)
+    public function getAllByWorkshop(GetAppointmentsByWorkshopRequest $request)
     {
         try {
-            $workshopId = $request->mechanical_workshops_id;
+            $workshopId = $request->validated()['mechanical_workshops_id'];
             $appointments = $this->appointmentService->getAllAppointments($workshopId);
 
             return response()->json($appointments);
@@ -72,103 +69,13 @@ class AppointmentController extends Controller
     }
 
     /**
-     * Obtener todas las citas de un taller
-     */
-
-    /**
-     * Obtener cita por ID
-     */
-    public function getById(Request $request)
-    {
-        try {
-            $data = $request->validate([
-                'appointment_id' => 'required|exists:appointments,appointment_id'
-            ]);
-
-            $appointment = $this->appointmentService->getAppointmentById($data['appointment_id']);
-
-            if (!$appointment) {
-                return ApiResponse::notFound('Cita no encontrada');
-            }
-
-            return ApiResponse::success('Cita obtenida exitosamente', $appointment);
-        } catch (\Exception $e) {
-            return ApiResponse::error('Error al obtener la cita', $e->getMessage());
-        }
-    }
-
-    /**
-     * Actualizar cita
-     */
-    public function update(Request $request)
-    {
-        try {
-            $data = $request->validate([
-                'appointment_id' => 'required|exists:appointments,appointment_id',
-                'client_name' => 'sometimes|string|max:255',
-                'client_email' => 'sometimes|email|max:255',
-                'client_phone' => 'sometimes|string|max:20',
-                'description' => 'sometimes|string|max:1000',
-                'appointment_date' => 'sometimes|date',
-                'status' => 'sometimes|in:pending,confirmed,cancelled,completed',
-                'notes' => 'sometimes|string|max:1000'
-            ]);
-
-            $appointmentId = $data['appointment_id'];
-            unset($data['appointment_id']); // Remover el ID de los datos a actualizar
-
-            // Usar el repositorio directamente para actualizar
-            $appointmentRepository = app(\App\Contracts\Repositories\AppointmentRepositoryInterface::class);
-            $updated = $appointmentRepository->update($appointmentId, $data);
-
-            if (!$updated) {
-                return ApiResponse::error('No se pudo actualizar la cita');
-            }
-
-            $appointment = $this->appointmentService->getAppointmentById($appointmentId);
-
-            return ApiResponse::success('Cita actualizada exitosamente', $appointment);
-        } catch (\Exception $e) {
-            return ApiResponse::error('Error al actualizar la cita', $e->getMessage());
-        }
-    }
-
-    /**
-     * Eliminar cita
-     */
-    public function delete(Request $request)
-    {
-        try {
-            $data = $request->validate([
-                'appointment_id' => 'required|exists:appointments,appointment_id'
-            ]);
-
-            // Usar el repositorio directamente para eliminar
-            $appointmentRepository = app(\App\Contracts\Repositories\AppointmentRepositoryInterface::class);
-            $deleted = $appointmentRepository->delete($data['appointment_id']);
-
-            if (!$deleted) {
-                return ApiResponse::error('No se pudo eliminar la cita');
-            }
-
-            return ApiResponse::success('Cita eliminada exitosamente');
-        } catch (\Exception $e) {
-            return ApiResponse::error('Error al eliminar la cita', $e->getMessage());
-        }
-    }
-
-    /**
      * Cancelar cita (desde dashboard)
      */
-    public function cancel(Request $request)
+    public function cancel(CancelAppointmentRequest $request)
     {
         try {
-            $data = $request->validate([
-                'appointment_id' => 'required|exists:appointments,appointment_id'
-            ]);
-
+            $data = $request->validated();
             $appointment = $this->appointmentService->cancelAppointment($data['appointment_id']);
-
             return ApiResponse::success('Cita cancelada exitosamente', $appointment);
         } catch (\Exception $e) {
             return ApiResponse::error('Error al cancelar la cita', $e->getMessage());
@@ -178,7 +85,7 @@ class AppointmentController extends Controller
     /**
      * Cancelar cita por token público (desde email)
      */
-    public function cancelByToken(Request $request, string $token)
+    public function cancelByToken(string $token)
     {
         try {
             $appointment = $this->appointmentService->cancelAppointmentByToken($token);
@@ -193,14 +100,12 @@ class AppointmentController extends Controller
     /**
      * Enviar recordatorio de cita
      */
-    public function sendReminder(Request $request)
+    public function sendReminder(SendAppointmentReminders $request)
     {
         try {
-            $data = $request->validate([
-                'appointment_id' => 'required|exists:appointments,appointment_id'
-            ]);
+            $data = $request->validated()['appointment_id'];
 
-            $this->appointmentService->sendReminder($data['appointment_id']);
+            $this->appointmentService->sendReminder($data);
 
             return ApiResponse::success('Recordatorio enviado exitosamente');
         } catch (\Exception $e) {
@@ -211,30 +116,15 @@ class AppointmentController extends Controller
     /**
      * Marcar cita como completada
      */
-    public function markAsCompleted(Request $request)
+    public function markAsCompleted(CompleteAppointmentRequest $request)
     {
         try {
-            $data = $request->validate([
-                'appointment_id' => 'required|exists:appointments,appointment_id',
-                'notes' => 'sometimes|string|max:1000'
-            ]);
+            $data = $request->validated()['appointment_id'];
 
-            $appointment = $this->appointmentService->getAppointmentById($data['appointment_id']);
+            $appointment = $this->appointmentService->getAppointmentById($data);
+            $response = $this->appointmentService->completeAppointment($appointment['appointment_id']);
 
-            if (!$appointment) {
-                return ApiResponse::notFound('Cita no encontrada');
-            }
-
-            // Marcar como completada usando el repositorio directamente
-            $appointmentRepository = app(\App\Contracts\Repositories\AppointmentRepositoryInterface::class);
-            $appointmentRepository->update($data['appointment_id'], [
-                'status' => 'completed',
-                'notes' => $data['notes'] ?? $appointment['notes']
-            ]);
-
-            $updatedAppointment = $this->appointmentService->getAppointmentById($data['appointment_id']);
-
-            return ApiResponse::success('Cita marcada como completada', $updatedAppointment);
+            return ApiResponse::success('Cita marcada como completada', $response);
         } catch (\Exception $e) {
             return ApiResponse::error('Error al completar la cita', $e->getMessage());
         }

@@ -13,11 +13,15 @@ return new class extends Migration
     {
         Schema::create('vehicles', function (Blueprint $table) {
             $table->id('vehicles_id');
-            $table->string('plates', 15);
-            $table->unsignedBigInteger('makes_model_id');
+            $table->string('plates');
             $table->unsignedBigInteger('clients_id');
-            $table->foreign('clients_id')->references('clients_id')->on('clients')->onDelete('cascade');
-            $table->foreign('makes_model_id')->references('makes_model_id')->on('makes_model')->onDelete('cascade');
+            $table->string('external_vehicle_id', 30);
+            $table->string('custom_make',100);
+            $table->string('custom_model',100);
+            $table->boolean('is_custom');
+            //$table->unsignedBigInteger('makes_model_id');
+            // $table->foreign('clients_id')->references('clients_id')->on('clients')->onDelete('cascade');
+            // $table->foreign('makes_model_id')->references('makes_model_id')->on('makes_model')->onDelete('cascade');
 
         });
     }

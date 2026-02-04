@@ -11,8 +11,8 @@ class MechanicalWorkshopService
         $mechanical = Mechanicals::create($data);
         $mechanical = [
             'id' => $mechanical->id,
-            'users_id' => $mechanical->users_id,
-            'cities_id' => $mechanical->cities_id,
+            'external_users_id' => $mechanical->external_users_id,
+            'external_cities_id' => $mechanical->external_cities_id,
             'name' => $mechanical->name,
             'cellphone_number' => $mechanical->cellphone_number,
             'email' => $mechanical->email,

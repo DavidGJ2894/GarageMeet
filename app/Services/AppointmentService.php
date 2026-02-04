@@ -66,7 +66,7 @@ class AppointmentService implements AppointmentServiceInterface
                 'notes' => $data['notes'] ?? null
             ];
 
-            $this->repository->update($appointmentId, $updateData);
+            $this->repository->updateAppointmentStatus($appointmentId, $updateData);
             $appointment = $this->repository->findById($appointmentId);
 
             // Enviar notificación al cliente
@@ -86,13 +86,26 @@ class AppointmentService implements AppointmentServiceInterface
             }
 
             // Actualizar status a cancelado
-            $this->repository->update($id, ['status' => 'cancelled']);
+            $this->repository->updateAppointmentStatus($id, ['status' => 'cancelled']);
             $appointment = $this->repository->findById($id);
 
             // Enviar notificación al cliente
             $this->sendNotificationToClient($appointment, 'cancelled');
 
             return $appointment;
+        });
+    }
+
+        public function completeAppointment(int $id): bool
+    {
+        return DB::transaction(function () use ($id) {
+            $appointment = $this->repository->findById($id);
+            if (!$appointment) {
+                throw new \Exception('Cita no encontrada');
+            }
+            // Actualizar status a cancelado
+            $this->repository->updateAppointmentStatus($id, ['status' => 'completed']);
+            return true;
         });
     }
 
@@ -110,7 +123,7 @@ class AppointmentService implements AppointmentServiceInterface
             }
 
             // Actualizar status a cancelado
-            $this->repository->update($appointment['appointment_id'], ['status' => 'cancelled']);
+            $this->repository->updateAppointmentStatus($appointment['appointment_id'], ['status' => 'cancelled']);
             $appointment = $this->repository->findById($appointment['appointment_id']);
 
             // Enviar notificación de confirmación de cancelación

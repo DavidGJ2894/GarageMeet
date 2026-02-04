@@ -19,7 +19,7 @@ class AppointmentRepository implements AppointmentRepositoryInterface
         return $appointment ? $appointment->toArray() : null;
     }
 
-    public function update(int $id, array $data): bool
+    public function updateAppointmentStatus(int $id, array $data): bool
     {
         $appointment = Appointments::findOrFail($id);
         return $appointment->update($data);

@@ -39,11 +39,21 @@ class StoreAppointmentRequest extends FormRequest
         return [
             'mechanical_workshops_id.required' => 'El taller es requerido.',
             'mechanical_workshops_id.exists' => 'El taller seleccionado no existe.',
+
             'client_name.required' => 'El nombre del cliente es requerido.',
+            'client_name.string' => 'El nombre del cliente debe ser una cadena de texto.',
+            'client_name.max' => 'El nombre del cliente no puede exceder 255 caracteres.',
+
             'client_email.required' => 'El email del cliente es requerido.',
+            'client_email.string' => 'El email del cliente debe ser una cadena de texto.',
             'client_email.email' => 'El email debe tener un formato válido.',
+
             'client_phone.required' => 'El teléfono del cliente es requerido.',
+            'client_phone.string' => 'El teléfono del cliente debe ser una cadena de texto.',
+            'client_phone.max' => 'El teléfono del cliente no puede exceder 20 caracteres.',
+
             'description.required' => 'La descripción del problema es requerida.',
+            'description.string' => 'La descripción debe ser una cadena de texto.',
             'description.max' => 'La descripción no puede exceder 1000 caracteres.',
         ];
     }
