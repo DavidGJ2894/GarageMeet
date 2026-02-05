@@ -101,8 +101,8 @@ Route::prefix('clients')->group(function () {
 Route::get('/subscription-plans', [SubscriptionController::class, 'getPlans']);
 // Rutas públicas de citas (para la app móvil)
 Route::prefix('appointments')->group(function () {
-    Route::post('request', [AppointmentController::class, 'createRequest']);
-    Route::post('/', [AppointmentController::class, 'createRequest']); // Alias para app móvil
+    Route::post('request', [AppointmentController::class, 'createAppointment']);
+    Route::post('/', [AppointmentController::class, 'createAppointment']); // Alias para app móvil
 });
 // Rutas protegidas por autenticación
 Route::middleware(['auth:api'])->group(function () {
@@ -202,14 +202,14 @@ Route::middleware(['auth:api'])->group(function () {
             // Gestión de citas desde el dashboard
             Route::prefix('appointments')->group(function () {
                 Route::middleware('api.auth')->group(function () {
-                    Route::get('all', [AppointmentController::class, 'getAllByWorkshop']);
+                    Route::get('all', [AppointmentController::class, 'getAllAppointmentsByWorkshop']);
                     Route::post('getById', [AppointmentController::class, 'getById']);
                     Route::put('update', [AppointmentController::class, 'update']);
                     Route::delete('delete', [AppointmentController::class, 'delete']);
-                    Route::post('confirm', [AppointmentController::class, 'confirm']);
-                    Route::post('cancel', [AppointmentController::class, 'cancel']);
-                    Route::post('send-reminder', [AppointmentController::class, 'sendReminder']);
-                    Route::post('mark-completed', [AppointmentController::class, 'markAsCompleted']);
+                    Route::post('confirm', [AppointmentController::class, 'confirmAppointment']);
+                    Route::post('cancel', [AppointmentController::class, 'cancelAppointment']);
+                    Route::post('send-reminder', [AppointmentController::class, 'sendAppointmentNotificationByEmail']);
+                    Route::post('mark-completed', [AppointmentController::class, 'markAppointmentAsCompleted']);
                 });
             });
         });

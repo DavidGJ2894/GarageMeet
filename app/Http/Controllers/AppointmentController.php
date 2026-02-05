@@ -10,9 +10,18 @@ use App\Http\Requests\ConfirmAppointmentRequest;
 use App\Http\Requests\GetAppointmentsByWorkshopRequest;
 use App\Http\Requests\StoreAppointmentRequest;
 use App\Http\Responses\ApiResponse;
-use App\Services\AppointmentService;
-use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+use Illuminate\View\View;
 
+/**
+ * Appointment lifecycle controller.
+ *
+ * Manages appointment operations: creation, confirmation, cancellation, and completion.
+ * Appointments follow the flow: pending → confirmed → completed/cancelled.
+ *
+ * @package App\Http\Controllers
+ * @author David Garcia Jeronimo <davidgarcia2809@gmail.com>
+ */
 class AppointmentController extends Controller
 {
     private AppointmentServiceInterface $appointmentService;
@@ -23,9 +32,12 @@ class AppointmentController extends Controller
     }
 
     /**
-     * Crear nueva solicitud de cita (desde la app móvil)
+     * Creates a new pending appointment request.
+     *
+     * @param StoreAppointmentRequest $request Validated appointment data
+     * @return JsonResponse Created appointment (201)
      */
-    public function createRequest(StoreAppointmentRequest $request)
+    public function createAppointment(StoreAppointmentRequest $request): JsonResponse
     {
         try {
             $appointment = $this->appointmentService->createAppointmentRequest($request->validated());
@@ -40,9 +52,12 @@ class AppointmentController extends Controller
     }
 
     /**
-     * Confirmar cita (desde el dashboard del taller)
+     * Confirms a pending appointment and notifies the client.
+     *
+     * @param ConfirmAppointmentRequest $request Confirmation data
+     * @return JsonResponse Confirmed appointment
      */
-    public function confirm(ConfirmAppointmentRequest $request)
+    public function confirmAppointment(ConfirmAppointmentRequest $request): JsonResponse
     {
         try {
             $appointment = $this->appointmentService->confirmAppointment($request->validated());
@@ -54,9 +69,12 @@ class AppointmentController extends Controller
     }
 
     /**
-     * Obtener todas las citas de un taller específico
+     * Retrieves all appointments for a specific workshop.
+     *
+     * @param GetAppointmentsByWorkshopRequest $request Workshop ID
+     * @return JsonResponse List of workshop appointments
      */
-    public function getAllByWorkshop(GetAppointmentsByWorkshopRequest $request)
+    public function getAllAppointmentsByWorkshop(GetAppointmentsByWorkshopRequest $request): JsonResponse
     {
         try {
             $workshopId = $request->validated()['mechanical_workshops_id'];
@@ -69,13 +87,16 @@ class AppointmentController extends Controller
     }
 
     /**
-     * Cancelar cita (desde dashboard)
+     * Cancels an appointment via authenticated API request.
+     *
+     * @param CancelAppointmentRequest $request Appointment ID
+     * @return JsonResponse Cancellation confirmation
      */
-    public function cancel(CancelAppointmentRequest $request)
+    public function cancelAppointment(CancelAppointmentRequest $request): JsonResponse
     {
         try {
-            $data = $request->validated();
-            $appointment = $this->appointmentService->cancelAppointment($data['appointment_id']);
+            $data = $request->validated()['appointment_id'];
+            $appointment = $this->appointmentService->cancelAppointment($data);
             return ApiResponse::success('Cita cancelada exitosamente', $appointment);
         } catch (\Exception $e) {
             return ApiResponse::error('Error al cancelar la cita', $e->getMessage());
@@ -83,9 +104,12 @@ class AppointmentController extends Controller
     }
 
     /**
-     * Cancelar cita por token público (desde email)
+     * Cancels an appointment via email token without authentication.
+     *
+     * @param string $token Unique cancellation token
+     * @return View Confirmation or error view
      */
-    public function cancelByToken(string $token)
+    public function cancelAppointmentByToken(string $token): View
     {
         try {
             $appointment = $this->appointmentService->cancelAppointmentByToken($token);
@@ -98,9 +122,12 @@ class AppointmentController extends Controller
     }
 
     /**
-     * Enviar recordatorio de cita
+     * Sends an appointment reminder via email.
+     *
+     * @param SendAppointmentReminders $request Appointment ID
+     * @return JsonResponse Send confirmation
      */
-    public function sendReminder(SendAppointmentReminders $request)
+    public function sendAppointmentNotificationByEmail(SendAppointmentReminders $request): JsonResponse
     {
         try {
             $data = $request->validated()['appointment_id'];
@@ -114,9 +141,12 @@ class AppointmentController extends Controller
     }
 
     /**
-     * Marcar cita como completada
+     * Marks an appointment as completed after service completion.
+     *
+     * @param CompleteAppointmentRequest $request Appointment ID
+     * @return JsonResponse Completed appointment
      */
-    public function markAsCompleted(CompleteAppointmentRequest $request)
+    public function markAppointmentAsCompleted(CompleteAppointmentRequest $request): JsonResponse
     {
         try {
             $data = $request->validated()['appointment_id'];

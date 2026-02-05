@@ -3,7 +3,11 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-
+/**
+ * Request validation for creating appointment request.
+ *
+ * Validates client information and workshop selection for new appointments.
+ */
 class StoreAppointmentRequest extends FormRequest
 {
     /**
@@ -26,8 +30,7 @@ class StoreAppointmentRequest extends FormRequest
             'client_name' => 'required|string|max:255',
             'client_email' => 'required|email|max:255',
             'client_phone' => 'required|string|max:20',
-            'description' => 'required|string|max:1000',
-            'created_by' => 'sometimes|in:app,dashboard'
+            'description' => 'required|string|max:1000'
         ];
     }
 
