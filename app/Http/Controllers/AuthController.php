@@ -2,220 +2,163 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Http\Request;
+use App\Contracts\Services\UserServiceInterface;
+use App\Http\Requests\LoginUserRequest;
+use App\Http\Requests\RegisterUserRequest;
+use App\Http\Requests\UpdateUserRequest;
+use App\Http\Responses\ApiResponse;
 use Illuminate\Http\Response;
-use App\Models\User;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
+/**
+ * Authentication Controller
+ *
+ * Handles user authentication operations including login, registration,
+ * profile updates, and JWT token management.
+ *
+ * @package App\Http\Controllers
+ */
 class AuthController extends Controller
 {
-    public function retornar()
-    {
-        return response()->json('hola');
-    }
     /**
-     * Get a JWT via given credentials.
+     * User service instance
      *
-     * @return \Illuminate\Http\JsonResponse
+     * @var UserServiceInterface
      */
-    public function login()
-    {
-        $credentials = request(['email', 'password']);
-
-        if (! $token = auth('api')->attempt($credentials)) {
-            return response()->json(['error' => 'Unauthorized'], 401);
-        }
-
-        // Obtener el usuario autenticado con su taller mecánico
-        $user = auth('api')->user()->load('mechanicalWorkshop');
-
-        // Preparar los datos del usuario
-        $userData = [
-            'id' => $user->users_id,
-            'email' => $user->email,
-            'type_user' => $user->typeUser->name ?? null, // Asegurarse de que el tipo de usuario esté cargado
-            'name' => $user->name,
-            'last_name' => $user->last_name,
-        ];
-
-        // Agregar datos del taller mecánico si existe, excluyendo created_at y updated_at
-        if ($user->mechanicalWorkshop) {
-            $mechanicalData = $user->mechanicalWorkshop->toArray();
-            unset($mechanicalData['created_at']);
-            unset($mechanicalData['updated_at']);
-            $userData['mechanical_workshop'] = $mechanicalData;
-        } else {
-            $userData['mechanical_workshop'] = null;
-        }
-
-        return response()->json([
-            'access_token' => $token,
-            'token_type' => 'bearer',
-            'expires_in' => JWTAuth::factory()->getTTL() * 60,
-            'user' => $userData
-        ]);
-    }
-
-
-    public function register(Request $request)
-    {
-        $validar = Validator::make($request->all(), [
-            'name' => 'required|string|max:60',
-            'last_name' => 'required|string|max:90',
-            'email' => 'required|string|max:255|unique:users',
-            'password' => 'required|string|min:4',
-            'type_user' => 'required|int|',
-        ]);
-
-        if ($validar->fails()) {
-            return response()->json(['error' => $validar->messages()], Response::HTTP_BAD_REQUEST);
-        }
-
-        $user = User::create([
-            'name' => $request->input('name'),
-            'last_name' => $request->input('last_name'),
-            'email' => $request->input('email'),
-            'password' => Hash::make($request->input('password')),
-            'type_users_id' => $request->input('type_user'),
-        ]);
-
-        $stripeCustomer = $user->createAsStripeCustomer();
-
-        // Generar token JWT para el usuario recién registrado
-        $token = auth('api')->login($user);
-
-        // Cargar relación del tipo de usuario
-        $user->load('typeUser');
-
-        // Preparar los datos del usuario
-        $userData = [
-            'id' => $user->users_id,
-            'email' => $user->email,
-            'type_user' => $user->typeUser->name ?? null,
-            'name' => $user->name,
-            'last_name' => $user->last_name,
-        ];
-
-        // El usuario recién registrado no tiene taller mecánico
-        $userData['mechanical_workshop'] = null;
-
-        return response()->json([
-            'access_token' => $token,
-            'token_type' => 'bearer',
-            'expires_in' => JWTAuth::factory()->getTTL() * 60,
-            'user' => $userData
-        ], Response::HTTP_CREATED);
-    }
+    private UserServiceInterface $userService;
 
     /**
-     * Update user data.
+     * AuthController constructor
      *
-     * @return \Illuminate\Http\JsonResponse
+     * @param UserServiceInterface $userService User service for business logic
      */
-    public function updateUser(Request $request)
+    public function __construct(UserServiceInterface $userService)
     {
-        $user = auth('api')->user();
-        // return $user;
-
-        if (!$user) {
-            return response()->json(['error' => 'Unauthorized'], 401);
-        }
-
-        $validar = Validator::make($request->all(), [
-            'name' => 'sometimes|string|max:60',
-            'last_name' => 'sometimes|string|max:90',
-            'email' => 'sometimes|string|max:255|unique:users,email,' . $user->users_id . ',users_id',
-            'password' => 'sometimes|string|min:4|confirmed',
-            'current_password' => 'required_with:password|string',
-            'type_users_id' => 'sometimes|int|exists:type_users,type_users_id',
-
-        ]);
-
-        if ($validar->fails()) {
-            return response()->json(['error' => $validar->messages()], Response::HTTP_BAD_REQUEST);
-        }
-
-        // Verificar contraseña actual si se está actualizando la contraseña
-        if ($request->has('password')) {
-            if (!Hash::check($request->input('current_password'), $user->password)) {
-                return response()->json(['error' => 'Current password is incorrect'], Response::HTTP_BAD_REQUEST);
-            }
-        }
-
-        // Actualizar solo los campos que se envían en la solicitud
-        $updateData = [];
-
-        if ($request->has('name')) {
-            $updateData['name'] = $request->input('name');
-        }
-
-        if ($request->has('last_name')) {
-            $updateData['last_name'] = $request->input('last_name');
-        }
-
-        if ($request->has('email')) {
-            $updateData['email'] = $request->input('email');
-        }
-
-        if ($request->has('password')) {
-            $updateData['password'] = Hash::make($request->input('password'));
-        }
-
-        if ($request->has('type_users_id')) {
-            $updateData['type_users_id'] = $request->input('type_users_id');
-        }
-
-        // Actualizar el usuario
-        $user->update($updateData);
-
-        // Preparar los datos del usuario actualizado
-        $userData = [
-            'users_id' => $user->users_id,
-            'email' => $user->email,
-            'type_user' => $user->typeUser->name ?? null,
-            'name' => $user->name,
-            'last_name' => $user->last_name,
-            //'stripe_id' => $user->stripe_id,
-        ];
-
-        if ($user->hasStripeId()) {
-            $user->syncStripeCustomerDetails();
-        }
-
-        return response()->json([
-            'message' => 'User updated successfully',
-            'user' => $userData
-        ], Response::HTTP_OK);
+        $this->userService = $userService;
     }
 
     /**
-     * Get the authenticated User.
+     * Authenticate user and generate JWT token
      *
-     * @return \Illuminate\Http\JsonResponse
+     * Validates user credentials and returns a JWT token along with user data
+     * if authentication is successful.
+     *
+     * @param LoginUserRequest $request Validated login request containing email and password
+     * @return \Illuminate\Http\JsonResponse JSON response with access token and user data
+     * @throws \Exception When authentication fails or service error occurs
+     */
+    public function login(LoginUserRequest $request)
+    {
+        try {
+            $loginData = $this->userService->getLoginData($request->validated());
+            return response()->json([
+                'access_token' => $loginData['token'],
+                'token_type' => 'bearer',
+                'expires_in' => JWTAuth::factory()->getTTL() * 60,
+                'user' => $loginData['user']
+            ]);
+        } catch (\Exception $e) {
+            return ApiResponse::error('Error en el login', $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Register a new user
+     *
+     * Creates a new user account with the provided information, sets up Stripe customer,
+     * authenticates the user automatically, and returns a JWT token.
+     *
+     * @param RegisterUserRequest $request Validated registration request with user details
+     * @return \Illuminate\Http\JsonResponse JSON response with access token and user data (201 Created)
+     * @throws \Exception When registration fails or service error occurs
+     */
+    public function register(RegisterUserRequest $request)
+    {
+        try {
+            $userData = $this->userService->register($request->validated());
+
+            return response()->json([
+                'access_token' => $userData['token'],
+                'token_type' => 'bearer',
+                'expires_in' => JWTAuth::factory()->getTTL() * 60,
+                'user' => $userData['user']
+            ], Response::HTTP_CREATED);
+        } catch (\Exception $e) {
+            return ApiResponse::error('Error al registrar usuario', $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Update authenticated user's profile
+     *
+     * Updates the current authenticated user's information. Requires current password
+     * verification when changing the password. Syncs changes with Stripe if applicable.
+     *
+     * @param UpdateUserRequest $request Validated update request with user fields to update
+     * @return \Illuminate\Http\JsonResponse JSON response with success message and updated user data
+     * @throws \Exception When update fails, user not found, or current password is incorrect
+     */
+    public function updateUser(UpdateUserRequest $request)
+    {
+        try {
+            $data = $request->validated();
+            $user = $this->userService->getAuthenticatedUser();
+            $currentPassword = $data['current_password'] ?? null;
+
+            $userData = $this->userService->updateUser(
+                $user['users_id'],
+                $data,
+                $currentPassword
+            );
+
+            return response()->json([
+                'message' => 'Usuario actualizado exitosamente',
+                'user' => $userData
+            ], Response::HTTP_OK);
+        } catch (\Exception $e) {
+            return ApiResponse::error('Error al actualizar usuario', $e->getMessage(), 400);
+        }
+    }
+
+    /**
+     * Get authenticated user's profile
+     *
+     * Retrieves the currently authenticated user's information including
+     * their mechanical workshop data if available.
+     *
+     * @return \Illuminate\Http\JsonResponse|array JSON response with user profile data
+     * @throws \Exception When user is not authenticated
      */
     public function me()
     {
-        return response()->json(auth('api')->user());
+        try {
+            return $this->userService->getAuthenticatedUser();
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'No autenticado'], 401);
+        }
     }
 
     /**
-     * Log the user out (Invalidate the token).
+     * Logout user and invalidate JWT token
      *
-     * @return \Illuminate\Http\JsonResponse
+     * Logs out the currently authenticated user by invalidating their JWT token
+     * and adding it to the blacklist.
+     *
+     * @return \Illuminate\Http\JsonResponse JSON response with success message
      */
     public function logout()
     {
-        // Pass true to force the token to be blacklisted "forever"
         auth('api')->logout(true);
-        return response()->json(['message' => 'Successfully logged out']);
+        return response()->json(['message' => 'Sesión cerrada exitosamente']);
     }
 
     /**
-     * Refresh a token.
+     * Refresh JWT token
      *
-     * @return \Illuminate\Http\JsonResponse
+     * Generates a new JWT token for the authenticated user, extending their session.
+     * The old token is invalidated.
+     *
+     * @return \Illuminate\Http\JsonResponse JSON response with new access token
      */
     public function refresh()
     {
@@ -224,11 +167,13 @@ class AuthController extends Controller
     }
 
     /**
-     * Get the token array structure.
+     * Format token response structure
      *
-     * @param  string $token
+     * Helper method to format the standard JWT token response structure
+     * with token type and expiration time.
      *
-     * @return \Illuminate\Http\JsonResponse
+     * @param string $token JWT access token
+     * @return \Illuminate\Http\JsonResponse JSON response with formatted token data
      */
     protected function respondWithToken($token)
     {

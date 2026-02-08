@@ -12,6 +12,7 @@ use App\Contracts\Repositories\PiecesRepositoryInterface;
 use App\Contracts\Repositories\PositionRepositoryInterface;
 use App\Contracts\Repositories\SalesRepositoryInterface;
 use App\Contracts\Repositories\ServicesRepositoryInterface;
+use App\Contracts\Repositories\UserRepositoryInterface;
 use App\Contracts\Repositories\VehiclesClientsRepositoryInterface;
 use App\Contracts\Repositories\VehiclesRepositoryInterface;
 use App\Contracts\Services\CitiesServiceInterface;
@@ -24,7 +25,9 @@ use App\Contracts\Services\PiecesServiceInterface;
 use App\Contracts\Services\PositionServiceInterface;
 use App\Contracts\Services\SalesServiceInterface;
 use App\Contracts\Services\ServicesServiceInterface;
+use App\Contracts\Services\UserServiceInterface;
 use App\Contracts\Services\VehiclesServiceInterface;
+use App\Repositories\UserRepository;
 use App\Repositories\CitiesRepository;
 use App\Repositories\ClientRepository;
 use App\Repositories\EmployeeRepository;
@@ -47,6 +50,7 @@ use App\Services\PiecesService;
 use App\Services\PositionService;
 use App\Services\SalesService;
 use App\Services\ServicesService;
+use App\Services\UserService;
 use App\Services\VehiclesService;
 use Illuminate\Support\ServiceProvider;
 
@@ -70,6 +74,7 @@ class RepositoryServiceProvider extends ServiceProvider
         $this->app->bind(PaymentTypesRepositoryInterface::class, PaymentTypesRepository::class);
         $this->app->bind(PiecesRepositoryInterface::class, PiecesRepository::class);
         $this->app->bind(SalesRepositoryInterface::class, SalesRepository::class);
+        $this->app->bind(UserRepositoryInterface::class, UserRepository::class);
 
         // Service bindings
         $this->app->bind(PeopleServiceInterface::class, PeopleService::class);
@@ -83,6 +88,7 @@ class RepositoryServiceProvider extends ServiceProvider
         $this->app->bind(PaymentTypesServiceInterface::class, PaymentTypesService::class);
         $this->app->bind(PiecesServiceInterface::class, PiecesService::class);
         $this->app->bind(SalesServiceInterface::class, SalesService::class);
+        $this->app->bind(UserServiceInterface::class, UserService::class);
     }
 
     /**

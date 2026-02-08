@@ -10,7 +10,3 @@ Route::get('/', function () {
 
 // Ruta pública para cancelar citas por token
 Route::get('/appointments/cancel/{token}', [AppointmentController::class, 'cancelAppointmentByToken']);
-
-// Rutas de prueba (temporales)
-Route::get('/test/email', [TestController::class, 'testEmail']);
-Route::get('/test/appointment', [TestController::class, 'testAppointment']);

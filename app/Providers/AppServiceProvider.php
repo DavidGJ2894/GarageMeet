@@ -21,6 +21,17 @@ class AppServiceProvider extends ServiceProvider
             \App\Contracts\Services\AppointmentServiceInterface::class,
             \App\Services\AppointmentService::class
         );
+
+        // Bind user interfaces
+        $this->app->bind(
+            \App\Contracts\Repositories\UserRepositoryInterface::class,
+            \App\Repositories\UserRepository::class
+        );
+
+        $this->app->bind(
+            \App\Contracts\Services\UserServiceInterface::class,
+            \App\Services\UserService::class
+        );
     }
 
     /**
