@@ -26,4 +26,16 @@ class StoreServiceRequest extends FormRequest
             'mechanical_workshops_id' => 'required|exists:mechanical_workshops,id',
         ];
     }
+
+    public function messages(): array
+    {
+        return [
+            'name.required' => 'El nombre del servicio es requerido.',
+            'name.string' => 'El nombre del servicio debe ser una cadena de texto.',
+            'name.max' => 'El nombre del servicio no puede exceder 255 caracteres.',
+
+            'mechanical_workshops_id.required' => 'El ID del taller es requerido.',
+            'mechanical_workshops_id.exists' => 'El taller especificado no existe.',
+        ];
+    }
 }

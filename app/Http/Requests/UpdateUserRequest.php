@@ -21,12 +21,12 @@ class UpdateUserRequest extends FormRequest
      */
     public function rules(): array
     {
-        $userId = auth('api')->user()->users_id;
+
 
         return [
             'name' => 'sometimes|string|max:60',
             'last_name' => 'sometimes|string|max:90',
-            'email' => 'sometimes|string|email|max:255|unique:users,email,' . $userId . ',users_id',
+            //'email' => 'sometimes|string|email|max:255|unique:users,email,' . $userId . ',users_id',
             'password' => 'sometimes|string|min:4|confirmed',
             'current_password' => 'required_with:password|string',
             'type_users_id' => 'sometimes|int|exists:type_users,type_users_id',
@@ -44,10 +44,6 @@ class UpdateUserRequest extends FormRequest
 
             'last_name.string' => 'El apellido debe ser una cadena de texto.',
             'last_name.max' => 'El apellido no puede exceder 90 caracteres.',
-
-            'email.email' => 'El correo electrónico debe tener un formato válido.',
-            'email.max' => 'El correo electrónico no puede exceder 255 caracteres.',
-            'email.unique' => 'Este correo electrónico ya está registrado.',
 
             'password.string' => 'La contraseña debe ser una cadena de texto.',
             'password.min' => 'La contraseña debe tener al menos 4 caracteres.',

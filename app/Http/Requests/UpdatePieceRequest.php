@@ -32,13 +32,13 @@ class UpdatePieceRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'pieces_id.required' => 'The piece ID is required.',
-            'pieces_id.exists' => 'The selected piece does not exist.',
-            'name.required' => 'The piece name is required.',
-            'name.max' => 'The piece name may not be greater than 255 characters.',
-            'price.required' => 'The piece price is required.',
-            'price.numeric' => 'The piece price must be a number.',
-            'price.min' => 'The piece price must be greater than or equal to 0.',
+            'pieces_id.required' => 'El ID de la pieza es requerido.',
+            'pieces_id.exists' => 'La pieza especificada no existe.',
+            'name.required' => 'El nombre de la pieza es requerido.',
+            'name.max' => 'El nombre de la pieza no puede exceder 255 caracteres.',
+            'price.required' => 'El precio de la pieza es requerido.',
+            'price.numeric' => 'El precio de la pieza debe ser un numero.',
+            'price.min' => 'El precio de la pieza debe ser mayor o igual a 0.',
         ];
     }
 }

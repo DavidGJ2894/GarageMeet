@@ -32,13 +32,13 @@ class StorePieceRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.required' => 'The piece name is required.',
-            'name.max' => 'The piece name may not be greater than 255 characters.',
-            'mechanical_workshops_id.required' => 'The mechanical workshop ID is required.',
-            'mechanical_workshops_id.exists' => 'The selected mechanical workshop does not exist.',
-            'price.required' => 'The piece price is required.',
-            'price.numeric' => 'The piece price must be a number.',
-            'price.min' => 'The piece price must be greater than or equal to 0.',
+            'name.required' => 'El nombre de la pieza es requerido.',
+            'name.max' => 'El nombre de la pieza no puede exceder 255 caracteres.',
+            'mechanical_workshops_id.required' => 'El ID del taller es requerido.',
+            'mechanical_workshops_id.exists' => 'El taller especificado no existe.',
+            'price.required' => 'El precio de la pieza es requerido.',
+            'price.numeric' => 'El precio de la pieza debe ser un numero.',
+            'price.min' => 'El precio de la pieza debe ser mayor o igual a 0.',
         ];
     }
 }

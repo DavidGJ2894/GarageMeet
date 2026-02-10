@@ -32,4 +32,34 @@ class StoreSaleRequest extends FormRequest
             'pieces' => 'required|array',
         ];
     }
+
+    public function messages(): array
+    {
+        return [
+            'payment_types_id.required' => 'El tipo de pago es requerido.',
+            'payment_types_id.exists' => 'El tipo de pago especificado no existe.',
+
+            'employees_id.required' => 'El ID del empleado es requerido.',
+            'employees_id.exists' => 'El empleado especificado no existe.',
+
+            'vehicles_id.required' => 'El ID del vehículo es requerido.',
+            'vehicles_id.exists' => 'El vehículo especificado no existe.',
+
+            'mechanical_workshops_id.required' => 'El ID del taller es requerido.',
+            'mechanical_workshops_id.exists' => 'El taller especificado no existe.',
+
+            'date.required' => 'La fecha es requerida.',
+            'date.date' => 'La fecha debe tener un formato válido.',
+
+            'price.required' => 'El precio es requerido.',
+            'price.numeric' => 'El precio debe ser un número.',
+            'price.min' => 'El precio no puede ser negativo.',
+
+            'services.required' => 'Los servicios son requeridos.',
+            'services.array' => 'Los servicios deben ser un arreglo.',
+
+            'pieces.required' => 'Las piezas son requeridas.',
+            'pieces.array' => 'Las piezas deben ser un arreglo.',
+        ];
+    }
 }

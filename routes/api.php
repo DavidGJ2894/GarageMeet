@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\CitiesController;
 use App\Http\Controllers\MechanicalWorkshopController;
 use App\Http\Controllers\PositionsController;
 use App\Http\Controllers\EmployeesController;
@@ -14,19 +13,7 @@ use App\Http\Controllers\ServicesController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\VehiclesController;
 use App\Http\Controllers\AppointmentController;
-use App\Http\Controllers\DownloadController;
 use Illuminate\Support\Facades\Route;
-
-// Rutas públicas para descargas
-Route::prefix('downloads')->group(function () {
-    Route::get('mobile-app', [DownloadController::class, 'downloadMobileApp'])->name('download.mobile-app');
-    Route::get('app-info', [DownloadController::class, 'getAppInfo'])->name('download.app-info');
-});
-
-Route::prefix('cities')->group(function () {
-    Route::get('findByName/{name}', [CitiesController::class, 'findByName']);
-    Route::get('search', [CitiesController::class, 'search']); // Nueva ruta para app móvil
-});
 
 Route::prefix('auth')->group(function () {
     Route::post('register', [AuthController::class, 'register']);

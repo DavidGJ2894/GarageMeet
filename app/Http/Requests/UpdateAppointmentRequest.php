@@ -37,7 +37,10 @@ class UpdateAppointmentRequest extends FormRequest
             'appointment_date.required' => 'La fecha de la cita es requerida.',
             'appointment_date.date' => 'La fecha debe tener un formato válido.',
             'appointment_date.after' => 'La fecha de la cita debe ser en el futuro.',
+
             'status.in' => 'El estado debe ser: pending, confirmed, cancelled o completed.',
+
+            'notes.string' => 'Las notas deben ser una cadena de texto.',
             'notes.max' => 'Las notas no pueden exceder 1000 caracteres.',
         ];
     }

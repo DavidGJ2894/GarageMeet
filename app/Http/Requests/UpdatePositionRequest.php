@@ -31,10 +31,12 @@ class UpdatePositionRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'positions_id.required' => 'The position ID is required.',
-            'positions_id.exists' => 'The selected position does not exist.',
-            'name.required' => 'The position name is required.',
-            'name.max' => 'The position name may not be greater than 60 characters.',
+            'positions_id.required' => 'El ID de la posición es requerido.',
+            'positions_id.exists' => 'La posición seleccionada no existe.',
+
+            'name.required' => 'El nombre de la posición es requerido.',
+            'name.string' => 'El nombre de la posición debe ser una cadena de texto.',
+            'name.max' => 'El nombre de la posición no puede exceder 60 caracteres.',
         ];
     }
 }

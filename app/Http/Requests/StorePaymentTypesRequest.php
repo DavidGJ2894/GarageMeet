@@ -26,4 +26,16 @@ class StorePaymentTypesRequest extends FormRequest
             'mechanical_workshops_id' => 'required|exists:mechanical_workshops,id',
         ];
     }
+
+    public function messages(): array
+    {
+        return [
+            'name.required' => 'El nombre del tipo de pago es requerido.',
+            'name.string' => 'El nombre del tipo de pago debe ser una cadena de texto.',
+            'name.max' => 'El nombre del tipo de pago no puede exceder 255 caracteres.',
+
+            'mechanical_workshops_id.required' => 'El ID del taller es requerido.',
+            'mechanical_workshops_id.exists' => 'El taller especificado no existe.',
+        ];
+    }
 }

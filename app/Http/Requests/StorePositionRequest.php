@@ -31,10 +31,10 @@ class StorePositionRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.required' => 'The position name is required.',
-            'name.max' => 'The position name may not be greater than 60 characters.',
-            'mechanical_workshops_id.required' => 'The mechanical workshop ID is required.',
-            'mechanical_workshops_id.exists' => 'The selected mechanical workshop does not exist.',
+            'name.required' => 'El nombre de la posicion es requerido.',
+            'name.max' => 'El nombre de la posicion no puede exceder 60 caracteres.',
+            'mechanical_workshops_id.required' => 'El ID del taller es requerido.',
+            'mechanical_workshops_id.exists' => 'El taller especificado no existe.',
         ];
     }
 }

@@ -159,7 +159,7 @@ class UserService implements UserServiceInterface
         }
 
         $userData = [
-            'id' => $user->users_id,
+            'users_id' => $user->users_id,
             'email' => $user->email,
             'type_user' => $user->typeUser->name ?? null,
             'name' => $user->name,

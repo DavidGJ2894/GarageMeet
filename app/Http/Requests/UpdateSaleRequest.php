@@ -33,4 +33,29 @@ class UpdateSaleRequest extends FormRequest
             'pieces' => 'sometimes|array',
         ];
     }
+
+    public function messages(): array
+    {
+        return [
+            'services_sales_id.required' => 'El ID de la venta de servicio es requerido.',
+            'services_sales_id.exists' => 'La venta de servicio especificada no existe.',
+
+            'payment_types_id.exists' => 'El tipo de pago especificado no existe.',
+
+            'employees_id.exists' => 'El empleado especificado no existe.',
+
+            'vehicles_id.exists' => 'El vehículo especificado no existe.',
+
+            'mechanical_workshops_id.exists' => 'El taller especificado no existe.',
+
+            'date.date' => 'La fecha debe tener un formato válido.',
+
+            'price.numeric' => 'El precio debe ser un número.',
+            'price.min' => 'El precio no puede ser negativo.',
+
+            'services.array' => 'Los servicios deben ser un arreglo.',
+
+            'pieces.array' => 'Las piezas deben ser un arreglo.',
+        ];
+    }
 }
