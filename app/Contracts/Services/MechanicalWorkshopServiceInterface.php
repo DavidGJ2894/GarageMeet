@@ -2,17 +2,15 @@
 
 namespace App\Contracts\Services;
 
+use App\DTOs\MechanicalWorkshopDTO;
 use App\Http\Requests\StoreMechanicalsRequest;
 use App\Http\Requests\UpdateMechanicalsRequest;
 
 interface MechanicalWorkshopServiceInterface
 {
-    public function createWorkshop(StoreMechanicalsRequest $request): array;
-    public function updateWorkshop(UpdateMechanicalsRequest $request): array;
-    public function deleteWorkshop(int $id): bool;
-    public function findWorkshop(int $id): ?array;
-    public function getAllWorkshopsByUser(int $userId): array;
-    public function getAllWorkshops(): array;
-    public function getAllWorkshopsByState(string $state): array;
-    public function getAllWorkshopsByStateAndCity(string $state, string $city): array;
+    public function createWorkshop( MechanicalWorkshopDTO $data): array;
+    public function updateWorkshop(MechanicalWorkshopDTO $data): array;
+    public function findWorkshop(int $id): array;
+
+
 }

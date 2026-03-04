@@ -29,18 +29,11 @@ Route::prefix('auth')->group(function () {
 });
 
 Route::prefix('mechanicals')->group(function () {
-    Route::get('all', [MechanicalWorkshopController::class, 'getAll']);
-    Route::get('getByState/{state}', [MechanicalWorkshopController::class, 'getAllWorkshopsByState']);
-    Route::get('getByStateAndCity/{state}/{city}', [MechanicalWorkshopController::class, 'getAllWorkshopsByStateAndCity']);
     Route::middleware('api.auth')->group(function () {
         Route::post('create', [MechanicalWorkshopController::class, 'create']);
         Route::put('update', [MechanicalWorkshopController::class, 'update']);
+        Route::get('getUserWorkshop/{id}', [MechanicalWorkshopController::class, 'getUserWorkshop']);
     });
-});
-
-// Nueva ruta para app móvil - talleres por ciudad
-Route::prefix('mechanical-workshops')->group(function () {
-    Route::get('by-city/{id}', [MechanicalWorkshopController::class, 'getByCity']); // Nueva ruta para app móvil
 });
 
 Route::prefix('vehiclesService')->group(function () {

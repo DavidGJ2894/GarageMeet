@@ -8,6 +8,7 @@ use App\Http\Requests\UpdateMechanicalsRequest;
 use App\Http\Responses\ApiResponse;
 use App\Models\Mechanicals;
 use Illuminate\Http\Request;
+use App\DTOs\MechanicalWorkshopDTO;
 
 class MechanicalWorkshopController extends Controller
 {
@@ -21,104 +22,33 @@ class MechanicalWorkshopController extends Controller
     public function create(StoreMechanicalsRequest $request)
     {
         try {
-            $workshop = $this->mechanicalWorkshopService->createWorkshop($request);
+            $workshopDTO = MechanicalWorkshopDTO::fromStoreRequest($request->validated());
+            $workshop = $this->mechanicalWorkshopService->createWorkshop($workshopDTO);
             return ApiResponse::created('Mechanical workshop created successfully', $workshop);
         } catch (\Exception $e) {
             return ApiResponse::error('Error creating mechanical workshop', $e->getMessage());
         }
     }
 
-    public function update(UpdateMechanicalsRequest $request)
+    public function update(UpdateMechanicalsRequest $data)
     {
         try {
-            $workshop = $this->mechanicalWorkshopService->updateWorkshop($request);
+            $workshopDTO = MechanicalWorkshopDTO::fromUpdateRequest($data->validated());
+            $workshop = $this->mechanicalWorkshopService->updateWorkshop($workshopDTO);
             return ApiResponse::success('Mechanical workshop updated successfully', $workshop);
         } catch (\Exception $e) {
             return ApiResponse::error('Error updating mechanical workshop', $e->getMessage());
         }
     }
 
-    public function delete(Request $request, $id)
+    public function getUserWorkshop(int $id)
     {
         try {
-            $this->mechanicalWorkshopService->deleteWorkshop($id);
-            return ApiResponse::success('Mechanical workshop deleted successfully');
-        } catch (\Exception $e) {
-            return ApiResponse::error('Error deleting mechanical workshop', $e->getMessage());
-        }
-    }
 
-    public function show($id)
-    {
-        try {
             $workshop = $this->mechanicalWorkshopService->findWorkshop($id);
-
-            if (!$workshop) {
-                return ApiResponse::notFound('Mechanical workshop not found');
-            }
-
-            return response()->json($workshop);
+            return ApiResponse::success('User workshop retrieved successfully', $workshop);
         } catch (\Exception $e) {
-            return ApiResponse::error('Error retrieving mechanical workshop', $e->getMessage());
-        }
-    }
-
-    public function getAllByUser(Request $request, $userId)
-    {
-        try {
-            $workshops = $this->mechanicalWorkshopService->getAllWorkshopsByUser($userId);
-            return response()->json($workshops);
-        } catch (\Exception $e) {
-            return ApiResponse::error('Error retrieving mechanical workshops', $e->getMessage());
-        }
-    }
-
-    public function getAll()
-    {
-        try {
-            $workshops = $this->mechanicalWorkshopService->getAllWorkshops();
-            return response()->json($workshops);
-        } catch (\Exception $e) {
-            return ApiResponse::error('Error retrieving all mechanical workshops', $e->getMessage());
-        }
-    }
-
-    public function getAllWorkshopsByState(string $state)
-    {
-        try {
-            $workshops = $this->mechanicalWorkshopService->getAllWorkshopsByState($state);
-            return response()->json($workshops);
-        } catch (\Exception $e) {
-            return ApiResponse::error('Error retrieving mechanical workshops by state', $e->getMessage());
-        }
-    }
-
-    public function getAllWorkshopsByStateAndCity(string $state, string $city)
-    {
-        try {
-            $workshops = $this->mechanicalWorkshopService->getAllWorkshopsByStateAndCity($state, $city);
-            return response()->json($workshops);
-        } catch (\Exception $e) {
-            return ApiResponse::error('Error retrieving mechanical workshops by state and city', $e->getMessage());
-        }
-    }
-
-    public function getByCity(Request $request, $id = null)
-    {
-        try {
-            // Obtener cityId desde parámetro de ruta o query
-            $cityId = $id ?? $request->get('cities_id');
-
-            if (!$cityId) {
-                return ApiResponse::error('Missing required parameter: city ID');
-            }
-
-            // Buscar talleres por ciudad sin necesidad de estado
-            $workshops = Mechanicals::where('cities_id', $cityId)->get();
-
-            return ApiResponse::success('Mechanical workshops retrieved successfully', $workshops);
-        } catch (\Exception $e) {
-            return ApiResponse::error('Error retrieving mechanical workshops by city', $e->getMessage());
+            return ApiResponse::error('Error fetching user workshop', $e->getMessage(), $e->getCode() ?: 500);
         }
     }
 }

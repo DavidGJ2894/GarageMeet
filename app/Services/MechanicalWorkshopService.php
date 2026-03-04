@@ -4,58 +4,41 @@ namespace App\Services;
 
 use App\Contracts\Repositories\MechanicalWorkshopRepositoryInterface;
 use App\Contracts\Services\MechanicalWorkshopServiceInterface;
-use App\Http\Requests\StoreMechanicalsRequest;
-use App\Http\Requests\UpdateMechanicalsRequest;
+use App\Contracts\Services\UserServiceInterface;
+use App\DTOs\MechanicalWorkshopDTO;
 
 class MechanicalWorkshopService implements MechanicalWorkshopServiceInterface
 {
     private MechanicalWorkshopRepositoryInterface $workshopRepository;
-
-    public function __construct(MechanicalWorkshopRepositoryInterface $workshopRepository)
+    private UserServiceInterface $userService;
+    public function __construct(MechanicalWorkshopRepositoryInterface $workshopRepository, UserServiceInterface $userService)
     {
         $this->workshopRepository = $workshopRepository;
+        $this->userService = $userService;
     }
 
-    public function createWorkshop(StoreMechanicalsRequest $request): array
+    public function createWorkshop(MechanicalWorkshopDTO $data): array
     {
-        $validatedData = $request->validated();
-        return $this->workshopRepository->create($validatedData);
+        $workshop = $this->workshopRepository->create($data->toArray());
+        return $workshop;
     }
 
-    public function updateWorkshop(UpdateMechanicalsRequest $request): array
+    public function updateWorkshop(MechanicalWorkshopDTO $data): array
     {
-        $validatedData = $request->validated();
-        $workshopId = $validatedData['id'];
-
-        return $this->workshopRepository->update($workshopId, $validatedData);
+        $workshop = $this->workshopRepository->update($data->id, $data->toArray());
+        return $workshop;
     }
 
-    public function deleteWorkshop(int $id): bool
+    public function findWorkshop(int $id): array
     {
-        return $this->workshopRepository->delete($id);
-    }
-
-    public function findWorkshop(int $id): ?array
-    {
-        return $this->workshopRepository->findById($id);
-    }
-
-    public function getAllWorkshopsByUser(int $userId): array
-    {
-        return $this->workshopRepository->getAllByUser($userId);
-    }
-    public function getAllWorkshops(): array
-    {
-        return $this->workshopRepository->getAll();
-    }
-
-    public function getAllWorkshopsByState(string $state): array
-    {
-        return $this->workshopRepository->getAllByState($state);
-    }
-
-    public function getAllWorkshopsByStateAndCity(string $state, string $city): array
-    {
-        return $this->workshopRepository->getAllByStateAndCity($state, $city);
+        $user = $this->userService->getAuthenticatedUser();
+        $workshop = $this->workshopRepository->findById($id);
+        if (!$workshop) {
+            throw new \Exception("Mechanical workshop with ID $id not found.", 404);
+        }
+        if ($workshop['users_id'] !== $user['users_id']) {
+            throw new \Exception("Forbidden', 'Unauthorized access", 403);
+        }
+        return $workshop;
     }
 }

@@ -23,14 +23,42 @@ class UpdateMechanicalsRequest extends FormRequest
     {
         return [
             'id' => 'required|int|exists:mechanical_workshops,id',
-            'users_id' => 'required|int',
-            'cities_id' => 'required|int',
-            'states_id' => 'required|int',
-            'name' => 'required|string|max:60',
-            'cellphone_number' => 'required|string|min:14|max:14',
-            'email' => 'required|email|max:120',
-            'address' => 'required|string|max:255',
-            'google_maps_link' => 'required|string|max:255',
+            'external_cities_id' => 'sometimes|string',
+            'external_states_id' => 'sometimes|string',
+            'name' => 'sometimes|string|max:60',
+            'cellphone_number' => 'sometimes|string|min:10|max:14',
+            'email' => 'sometimes|email|max:120',
+            'address' => 'sometimes|string|max:255',
+            'google_maps_link' => 'sometimes|string|max:255',
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'id.int' => 'El ID debe ser un número entero.',
+            'id.required' => 'El ID del taller mecánico es requerido.',
+            'id.exists' => 'El taller mecánico especificado no existe.',
+
+            'external_cities_id.string' => 'El ID de la ciudad debe ser una cadena de texto.',
+
+            'external_states_id.string' => 'El ID del estado debe ser una cadena de texto.',
+
+            'name.string' => 'El nombre debe ser una cadena de texto.',
+            'name.max' => 'El nombre no puede exceder 60 caracteres.',
+
+            'cellphone_number.string' => 'El número de teléfono debe ser una cadena de texto.',
+            'cellphone_number.min' => 'El número de teléfono debe tener exactamente 14 caracteres.',
+            'cellphone_number.max' => 'El número de teléfono debe tener exactamente 14 caracteres.',
+
+            'email.email' => 'El correo electrónico debe tener un formato válido.',
+            'email.max' => 'El correo electrónico no puede exceder 120 caracteres.',
+
+            'address.string' => 'La dirección debe ser una cadena de texto.',
+            'address.max' => 'La dirección no puede exceder 255 caracteres.',
+
+            'google_maps_link.string' => 'El enlace de Google Maps debe ser una cadena de texto.',
+            'google_maps_link.max' => 'El enlace de Google Maps no puede exceder 255 caracteres.',
         ];
     }
 }
